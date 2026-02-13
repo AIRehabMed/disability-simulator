@@ -479,7 +479,7 @@
         let currentUtterance = null;
         let turnCount = 0;
         let patientProfile = null;
-        let currentAudio = null; //
+        let currentAudio = null;
 
         // Reflection prompts shown after certain turns
         const reflectionPrompts = [
@@ -747,60 +747,60 @@ Your purpose: Help learners see patients with disabilities as whole people with 
         }
 
         async function speak(text) {
-    if (isSpeaking) {
-        stopSpeaking();
-    }
+            if (isSpeaking) {
+                stopSpeaking();
+            }
 
-    try {
-        isSpeaking = true;
-        document.getElementById('stopSpeakingBtn').style.display = 'inline-flex';
-        showStatus('Patient speaking...', 'speaking');
+            try {
+                isSpeaking = true;
+                document.getElementById('stopSpeakingBtn').style.display = 'inline-flex';
+                showStatus('Patient speaking...', 'speaking');
 
-        // Call ElevenLabs TTS function
-        const response = await fetch('/.netlify/functions/text-to-speech', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                text: text,
-                voiceId: '21m00Tcm4TlvDq8ikWAM' // Rachel voice - change this to your chosen voice ID
-            })
-        });
+                // Call ElevenLabs TTS function
+                const response = await fetch('/.netlify/functions/text-to-speech', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voiceId: '21m00Tcm4TlvDq8ikWAM' // Rachel voice - change this to your chosen voice ID
+                    })
+                });
 
-        if (!response.ok) {
-            throw new Error('TTS failed');
+                if (!response.ok) {
+                    throw new Error('TTS failed');
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+
+                audio.onended = () => {
+                    isSpeaking = false;
+                    document.getElementById('stopSpeakingBtn').style.display = 'none';
+                    hideStatus();
+                    URL.revokeObjectURL(audioUrl);
+                };
+
+                audio.onerror = (error) => {
+                    console.error('Audio playback error:', error);
+                    isSpeaking = false;
+                    document.getElementById('stopSpeakingBtn').style.display = 'none';
+                    hideStatus();
+                };
+
+                currentAudio = audio;
+                audio.play();
+
+            } catch (error) {
+                console.error('Speech synthesis error:', error);
+                isSpeaking = false;
+                document.getElementById('stopSpeakingBtn').style.display = 'none';
+                hideStatus();
+            }
         }
 
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-
-        audio.onended = () => {
-            isSpeaking = false;
-            document.getElementById('stopSpeakingBtn').style.display = 'none';
-            hideStatus();
-            URL.revokeObjectURL(audioUrl);
-        };
-
-        audio.onerror = (error) => {
-            console.error('Audio playback error:', error);
-            isSpeaking = false;
-            document.getElementById('stopSpeakingBtn').style.display = 'none';
-            hideStatus();
-        };
-
-        currentAudio = audio;
-        audio.play();
-
-    } catch (error) {
-        console.error('Speech synthesis error:', error);
-        isSpeaking = false;
-        document.getElementById('stopSpeakingBtn').style.display = 'none';
-        hideStatus();
-    }
-
-        }
         function stopSpeaking() {
             if (currentAudio) {
                 currentAudio.pause();
