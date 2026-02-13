@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disability Awareness Patient Simulator</title>
+    <style>
+        /* [SAME CSS AS BEFORE - TRUNCATED FOR BREVITY] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        /* ... rest of CSS from enhanced version ... */
+    </style>
+</head>
+<body>
+    <!-- [SAME HTML STRUCTURE AS ENHANCED VERSION] -->
+    
+    <script>
+        // Configuration
+        const CONFIG = {
+            // For local testing, use: 'http://localhost:8888/.netlify/functions/chat'
+            // For production, use: '/.netlify/functions/chat'
+            API_ENDPOINT: '/.netlify/functions/chat'
+        };
+
+        // [ALL THE SAME JAVASCRIPT FROM ENHANCED VERSION, BUT WITH THIS KEY CHANGE:]
+
+        // MODIFIED: Secure API call function
+        async function callClaudeAPI(messages, systemPrompt) {
+            try {
+                const response = await fetch(CONFIG.API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: messages,
+                        system: systemPrompt
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error calling API:', error);
+                throw error;
+            }
+        }
+
+        // Update initializePatient to use new API call
+        async function initializePatient() {
+            showStatus('Initializing patient encounter...', 'thinking');
+            
+            try {
+                const data = await callClaudeAPI(
+                    [{ role: 'user', content: 'Hi' }],
+                    SYSTEM_PROMPT
+                );
+                
+                const patientIntro = data.content[0].text;
+                
+                conversationHistory = [
+                    { role: 'user', content: 'Hi' },
+                    { role: 'assistant', content: patientIntro }
+                ];
+                
+                extractPatientProfile(patientIntro);
+                addMessage('patient', patientIntro);
+                updateTurnCounter();
+                hideStatus();
+                
+                if (isVoiceMode) {
+                    speak(patientIntro);
+                }
+            } catch (error) {
+                console.error('Error initializing patient:', error);
+                showStatus('Error connecting to simulator. Please try again.', 'error');
+            }
+        }
+
+        // Update sendMessage to use new API call
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            if (isSpeaking) {
+                stopSpeaking();
+            }
+
+            addMessage('learner', message);
+            input.value = '';
+            
+            showStatus('Patient is thinking...', 'thinking');
+            
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            try {
+                const data = await callClaudeAPI(conversationHistory, SYSTEM_PROMPT);
+                const patientResponse = data.content[0].text;
+                
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: patientResponse
+                });
+                
+                addMessage('patient', patientResponse);
+                updateTurnCounter();
+                hideStatus();
+                
+                if (isVoiceMode) {
+                    speak(patientResponse);
+                }
+            } catch (error) {
+                console.error('Error getting response:', error);
+                showStatus('Error communicating with patient. Please try again.', 'error');
+            }
+        }
+
+        // [REST OF THE JAVASCRIPT CODE FROM ENHANCED VERSION]
+    </script>
+</body>
+</html>
