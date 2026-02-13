@@ -1,198 +1,54 @@
-[build]
-  functions = "netlify/functions"
+// Netlify Function to proxy Anthropic API calls securely
+// Save this as: netlify/functions/chat.js
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
-4. **Click "Commit changes"**
+const fetch = require('node-fetch');
 
-✅ **Checkpoint**: Your repository should now have 4 items:
-- README.md
-- netlify.toml
-- index.html
-- netlify/ (folder)
+exports.handler = async (event, context) => {
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: 'Method Not Allowed'
+    };
+  }
 
-**Perfect! Move to Step 3.**
+  // Parse the request body
+  const { messages, system } = JSON.parse(event.body);
 
----
+  try {
+    // Call Anthropic API with your secret key (stored in environment variable)
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY, // Stored securely in Netlify
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: system,
+        messages: messages
+      })
+    });
 
-## 🌐 **STEP 3: Deploy to Netlify (10 minutes)**
+    const data = await response.json();
 
-### 3.1 - Connect GitHub to Netlify
-1. **Go to**: https://app.netlify.com
-2. **Sign up** (use "Sign up with GitHub" - easiest option)
-3. **Authorize Netlify** to access your GitHub account
+    // Return the response
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*' // Allows your frontend to call this
+      },
+      body: JSON.stringify(data)
+    };
+  } catch (error) {
+    console.error('Error calling Anthropic API:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to get response' })
+    };
+  }
+};
 
-### 3.2 - Import Your Project
-1. **Click "Add new site"** (big button in the center or top-right)
-2. **Click "Import an existing project"**
-3. **Click "Deploy with GitHub"**
-4. **Authorize Netlify** if prompted
-5. **Find and click** your `disability-simulator` repository
-
-### 3.3 - Configure Deployment
-You'll see deployment settings:
-- **Branch to deploy**: `main` (already selected)
-- **Build command**: Leave empty
-- **Publish directory**: Leave empty or type `.`
-- **Click "Deploy [your-repo-name]"**
-
-### 3.4 - Wait for Deployment
-You'll see a deployment progress screen:
-- "Site deploy in progress" 
-- Takes about 1-2 minutes
-- When finished, you'll see **"Published"** with a green checkmark
-- You'll see a URL like: `https://curious-biscuit-a1b2c3.netlify.app`
-
-✅ **Checkpoint**: You see "Published" and a URL? Excellent! But **DON'T test it yet** - we need to add your API key first!
-
----
-
-## 🔑 **STEP 4: Add Your API Key (5 minutes)**
-
-**This is the most important step!** Your simulator won't work without this.
-
-### 4.1 - Navigate to Environment Variables
-1. From your Netlify dashboard, **click "Site configuration"** (left sidebar)
-2. **Click "Environment variables"** (in the left menu)
-3. **Click "Add a variable"** → **"Add a single variable"**
-
-### 4.2 - Add Anthropic API Key
-1. **Key**: Type exactly: `ANTHROPIC_API_KEY`
-2. **Values**: Paste your Anthropic API key
-   - It looks like: `sk-ant-api03-...` (long string of characters)
-   - Get it from: https://console.anthropic.com/settings/keys
-3. **Click "Create variable"**
-
-### 4.3 - Trigger Rebuild
-**CRITICAL STEP**: The site needs to rebuild with the new variable!
-
-1. **Click "Deploys"** (in the top menu)
-2. **Click "Trigger deploy"** (dropdown button)
-3. **Select "Deploy site"**
-4. **Wait 1-2 minutes** for rebuild to complete
-
-✅ **Checkpoint**: Under Environment Variables, you should see `ANTHROPIC_API_KEY` listed with a value that's hidden (shows as dots).
-
----
-
-## 🧪 **STEP 5: Test Your Simulator (5 minutes)**
-
-### 5.1 - Open Your Site
-1. **Go to "Deploys"** tab
-2. **Click on the green "Published"** link at the top
-   - Or copy the URL shown (like `https://curious-biscuit-a1b2c3.netlify.app`)
-3. **Paste it in a new browser tab**
-
-### 5.2 - Test Basic Functionality
-You should see the welcome screen with:
-- Title: "Disability Awareness Patient Simulator"
-- Learning objectives section
-- "Begin Session" button
-
-**Click "Begin Session"**
-
-Wait 3-5 seconds. You should see:
-- A patient introduction message appear
-- Patient card with summary at top
-- A conversation interface
-
-### 5.3 - Test a Conversation
-1. **Type in the message box**: "Hi, I'm a medical student learning about disability care"
-2. **Click "Send"** or press Enter
-3. **Wait 3-5 seconds** for the patient to respond
-4. **You should get a thoughtful response** from the simulated patient
-
-### 5.4 - Test Voice Mode (Optional)
-**Best in Chrome or Safari!**
-
-1. **Toggle "Voice Mode"** to ON
-2. **Click "Start Listening"**
-3. **Grant microphone permission** if prompted
-4. **Say**: "What brings you to the clinic today?"
-5. **Patient should respond** with audio
-
-✅ **Checkpoint**: If conversation works, congratulations! Your simulator is live! 🎉
-
----
-
-## 🎨 **STEP 6: Customize Your URL (2 minutes)**
-
-Right now your URL is something like `curious-biscuit-a1b2c3.netlify.app`. Let's make it better!
-
-1. **Go to**: Site configuration → Domain management
-2. **Under "Domain settings"**, click **"Options"** → **"Edit site name"**
-3. **Type a new name**: 
-   - `disability-simulator`
-   - `med-edu-disability`
-   - `northwell-disability-sim`
-   - (Must be unique across all of Netlify)
-4. **Click "Save"**
-
-Your new URL: `https://your-chosen-name.netlify.app`
-
-✅ **Done!** This is your permanent, shareable link.
-
----
-
-## 📊 **STEP 7: Monitor Usage (2 minutes)**
-
-### Set Spending Limits (Important!)
-1. **Go to**: https://console.anthropic.com/settings/limits
-2. **Set Monthly Spending Limit**: $25 (for testing) or $100 (for full RCT)
-3. **Set Email Alerts**: at 50% and 80% of limit
-
-### Check Netlify Limits
-Your Netlify free tier includes:
-- ✅ 125,000 function calls/month (plenty!)
-- ✅ 100GB bandwidth/month (more than enough)
-- ✅ 300 build minutes/month (way more than needed)
-
-You can check usage at: Site configuration → Usage
-
----
-
-## ✅ **YOU'RE DONE! HERE'S WHAT YOU HAVE:**
-
-🎉 **A live, working disability awareness simulator**
-🔗 **A professional URL to share**: `https://your-name.netlify.app`
-🔒 **Secure API key** (hidden from users)
-🎤 **Voice-enabled** (works in Chrome/Safari)
-💰 **Cost**: ~$0.50-1.00 per user for your study
-
----
-
-## 📱 **NEXT STEPS - SHARE IT!**
-
-### For Pilot Testing (This Week):
-1. **Share URL with 5-10 colleagues**
-2. **Ask for feedback** on:
-   - Educational value
-   - Voice quality (is browser speech good enough?)
-   - User experience
-   - Any bugs or issues
-3. **Monitor API costs** daily in Anthropic console
-
-### Email Template for Testers:
-```
-Subject: Pilot Test - Disability Awareness Simulator
-
-Hi [Name],
-
-I'm developing an AI-powered patient simulator for disability awareness 
-training and would love your feedback.
-
-Please visit: https://your-simulator.netlify.app
-
-Instructions:
-1. Click "Begin Session"
-2. Have a 10-15 minute conversation with the virtual patient
-3. Try Voice Mode if you'd like (works best in Chrome)
-4. Send me feedback on the educational value and user experience
-
-This should take about 15-20 minutes total.
-
-Thanks!
-Dr. Landry
