@@ -1,0 +1,8 @@
+{
+  "name": "disability-simulator",
+  "version": "1.0.0",
+  "description": "Educational simulator for disability awareness training",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+}
