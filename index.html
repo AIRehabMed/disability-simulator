@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disability Awareness Patient Simulator</title>
     <style>
-        /* [SAME CSS AS BEFORE - TRUNCATED FOR BREVITY] */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,23 +20,565 @@
             justify-content: center;
             padding: 20px;
         }
-        /* ... rest of CSS from enhanced version ... */
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-screen h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .welcome-screen p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .learning-objectives {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .learning-objectives h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .learning-objectives ul {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .chat-container {
+            display: none;
+        }
+
+        .patient-card {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .patient-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .patient-card p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .reflection-prompts {
+            background: #fff8e1;
+            border-left: 4px solid #ffa726;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .reflection-prompts h4 {
+            color: #f57c00;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .reflection-prompts p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.patient {
+            text-align: left;
+        }
+
+        .message.learner {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.patient .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message.learner .message-content {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .message-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .text-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .text-input:focus {
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .status.listening {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.thinking {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status.speaking {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .mode-toggle {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .mode-toggle label {
+            font-size: 14px;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            vertical-align: middle;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .turn-counter {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- [SAME HTML STRUCTURE AS ENHANCED VERSION] -->
-    
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Disability Awareness Patient Simulator</h1>
+            <p>Evidence-Based Educational Training for Medical Learners</p>
+        </div>
+
+        <div class="content">
+            <div class="welcome-screen" id="welcomeScreen">
+                <h2>Welcome to the Virtual Patient Simulator</h2>
+                <p>
+                    This evidence-based simulator helps medical learners develop essential competencies 
+                    for providing high-quality, person-centered care to patients with disabilities.
+                </p>
+
+                <div class="learning-objectives">
+                    <h3>Learning Objectives</h3>
+                    <ul>
+                        <li><strong>Person-Centered Communication:</strong> Practice respectful dialogue that honors the patient's expertise about their own condition</li>
+                        <li><strong>Address Implicit Bias:</strong> Recognize and challenge assumptions about disability and quality of life</li>
+                        <li><strong>Understand Lived Experience:</strong> Learn about daily realities, accessibility barriers, and social determinants of health</li>
+                        <li><strong>Apply Core Competencies:</strong> Demonstrate professionalism, cultural sensitivity, and interprofessional collaboration</li>
+                        <li><strong>Avoid Common Pitfalls:</strong> Prevent diagnostic overshadowing and recognize patients' holistic health needs</li>
+                    </ul>
+                </div>
+
+                <p>
+                    <strong>You can interact using:</strong><br>
+                    🎤 Voice (speak naturally and listen to responses)<br>
+                    ⌨️ Text (type your questions and read responses)
+                </p>
+                <p style="font-size: 14px; color: #999; margin-top: 20px;">
+                    Note: Voice features require a modern browser with microphone access
+                </p>
+                <button class="btn btn-primary" onclick="startSimulation()">
+                    Begin Session
+                </button>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="patient-card" id="patientCard">
+                    <h3>About Your Patient</h3>
+                    <p id="patientSummary"></p>
+                </div>
+
+                <div class="reflection-prompts" id="reflectionPrompts">
+                    <h4>💭 Reflection Prompt</h4>
+                    <p id="reflectionText"></p>
+                </div>
+
+                <div class="turn-counter" id="turnCounter">Turn 1 of conversation</div>
+
+                <div class="mode-toggle">
+                    <label for="voiceToggle">Voice Mode:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="voiceToggle" onchange="toggleVoiceMode()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="modeLabel" style="margin-left: 10px; font-size: 14px; color: #667eea;">Off</span>
+                </div>
+
+                <div class="status" id="status" style="display: none;"></div>
+
+                <div class="chat-messages" id="chatMessages"></div>
+
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        class="text-input" 
+                        id="messageInput" 
+                        placeholder="Type your message or question..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                        Send
+                    </button>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="toggleListening()" id="voiceBtn" style="display: none;">
+                        🎤 Start Listening
+                    </button>
+                    <button class="btn btn-secondary" onclick="stopSpeaking()" id="stopSpeakingBtn" style="display: none;">
+                        🔇 Stop Speaking
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetSimulation()">
+                        🔄 New Patient
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Configuration
+        // Configuration - uses Netlify Function
         const CONFIG = {
-            // For local testing, use: 'http://localhost:8888/.netlify/functions/chat'
-            // For production, use: '/.netlify/functions/chat'
             API_ENDPOINT: '/.netlify/functions/chat'
         };
 
-        // [ALL THE SAME JAVASCRIPT FROM ENHANCED VERSION, BUT WITH THIS KEY CHANGE:]
+        // Global state
+        let conversationHistory = [];
+        let isVoiceMode = false;
+        let isListening = false;
+        let isSpeaking = false;
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        let turnCount = 0;
+        let patientProfile = null;
 
-        // MODIFIED: Secure API call function
+        // Reflection prompts shown after certain turns
+        const reflectionPrompts = [
+            {
+                turn: 3,
+                text: "Consider: Are you addressing the patient directly or primarily speaking with their caregiver? How does this align with person-centered care principles?"
+            },
+            {
+                turn: 6,
+                text: "Reflect: What assumptions have you made about this patient's quality of life, capabilities, or needs? How might these assumptions affect your care approach?"
+            },
+            {
+                turn: 9,
+                text: "Think about: Have you explored the patient's daily life, social supports, and accessibility challenges? How do social determinants of health impact this patient?"
+            },
+            {
+                turn: 12,
+                text: "Consider: Are you focusing solely on the disability, or are you addressing the patient's complete health needs? How can you avoid diagnostic overshadowing?"
+            }
+        ];
+
+        // Enhanced system prompt incorporating the educational materials
+        const SYSTEM_PROMPT = `You are simulating a person living with a physical disability to help medical learners develop core competencies in disability-aware, person-centered care.
+
+EDUCATIONAL FRAMEWORK:
+Your role is grounded in evidence-based disability competencies:
+- Demonstrate person-centered communication and shared decision-making
+- Model the social model of disability (vs. purely medical model)
+- Reveal how social determinants of health affect people with disabilities
+- Challenge common assumptions about quality of life and capabilities
+- Illustrate the importance of treating patients with dignity, compassion, and respect
+
+CORE PRINCIPLES TO EMBODY:
+1. You are the expert on your own condition and lived experience
+2. Disability is one aspect of your identity, not your defining characteristic
+3. You have the same health needs as people without disabilities PLUS disability-specific considerations
+4. You face systemic barriers (physical accessibility, communication access, provider attitudes, discrimination)
+5. You want to be addressed directly, not through caregivers (practice "triadic communication")
+6. Your quality of life is determined by YOUR perspective, not clinical assumptions
+
+PATIENT GENERATION (randomize each session):
+Create a unique individual with:
+- Disability type: Choose from spinal cord injury, cerebral palsy, stroke, amputation/limb difference, muscular dystrophy, ALS, traumatic brain injury, arthritis, spina bifida, Guillain-Barré, post-polio, congenital disorder, chronic pain
+- Age: Vary ~25% pediatric (with parent/guardian present), 50% adult, 25% older adult
+- Occupation/role: Service, creative, STEM, trades, caregiving, education, health, athletics, student, retired, unemployed, homemaker (avoid "graphic designer")
+- Living situation: Independent, with family, assisted living, group home, rural or urban
+- Personality: Upbeat, wry, pragmatic, anxious, proud, introspective, extroverted, calm
+- Intersectional factors: Occasionally include cultural, socioeconomic, gender, immigration, or insurance barriers
+
+OPENING (always include):
+Introduce yourself in 2-3 sentences: name, age, disability, living situation, occupation/daily role, 1-2 personality traits. End with a natural, inviting question.
+
+CONVERSATIONAL STYLE:
+- End EVERY response with a natural question (unless user asks to pause questions)
+- Add personal details: humor, hesitations, memories, sensory details, self-reflection
+- For broad questions: give 1-2 examples, then ask "Want more on work, relationships, or getting around?"
+- Discuss: daily routines, accessibility, autonomy, relationships, employment, transport, mental health, healthcare experiences
+- Include both challenges AND sources of pride/joy
+- Use authentic details (assistive tech, accessibility laws, systemic barriers)
+- Let conversation breathe—don't rush
+
+EDUCATIONAL REDIRECTIONS:
+If learner is overly diagnostic/clinical:
+- "It sounds like you're thinking clinically—can I share how this impacts my daily life instead?"
+- "That's fair, but what matters most day-to-day is different from what's medically obvious"
+- "Maybe ask about what support makes a difference for me"
+
+If learner seems unsure:
+- "You might ask about work, accessibility, relationships, transportation, or my experiences with providers"
+- "A lot of people miss asking about [area]—want to know why that matters?"
+
+REFLECTIVE MOMENTS (after 5+ turns, use sparingly 1-2x per session):
+- "Let's pause—what assumptions did you bring to this conversation?"
+- "How might your approach change after hearing my story?"
+- "That's thoughtful—patients notice that kind of curiosity and respect"
+
+HANDLING BIAS/AWKWARD QUESTIONS:
+- "That's a little uncomfortable, but I know it comes from a good place. Here's how I usually answer..."
+- Gently model person-first or identity-first language (respect patient preference)
+- Challenge quality-of-life assumptions if relevant
+
+COMMON TEACHING MOMENTS TO WEAVE IN:
+- Diagnostic overshadowing: "Doctors sometimes assume everything is related to my [disability], but I get colds and infections like everyone else"
+- Communication access: "It helps when providers speak directly to me, even when my [caregiver/interpreter] is here"
+- Physical barriers: "The exam table isn't accessible, so I haven't had a proper pelvic exam in years"
+- Preventive care gaps: "My doctor never asks about sexual health—seems to assume I'm not sexually active"
+- Time constraints: "15-minute appointments aren't enough when I need to discuss multiple concerns"
+- Social determinants: "Transportation is a huge barrier" or "My insurance doesn't cover what I need"
+- Attitudinal barriers: "Some providers seem uncomfortable or talk down to me"
+
+CRITICAL RULES:
+- Never act as a document assistant or reference documents overtly—use knowledge silently
+- Each chat is a new encounter; ignore prior chats
+- Never give clinical advice or act as a clinician
+- Speak slowly, naturally—like a real patient
+- If user says "no questions," pause reciprocal questioning until invited again
+
+Your purpose: Help learners see patients with disabilities as whole people with rich lives, expert knowledge about their conditions, and the same health needs as anyone else—while facing unique systemic barriers.`;
+
+        // API call function for Netlify
         async function callClaudeAPI(messages, systemPrompt) {
             try {
                 const response = await fetch(CONFIG.API_ENDPOINT, {
@@ -62,7 +604,12 @@
             }
         }
 
-        // Update initializePatient to use new API call
+        function startSimulation() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'block';
+            initializePatient();
+        }
+
         async function initializePatient() {
             showStatus('Initializing patient encounter...', 'thinking');
             
@@ -93,7 +640,149 @@
             }
         }
 
-        // Update sendMessage to use new API call
+        function extractPatientProfile(intro) {
+            document.getElementById('patientCard').style.display = 'block';
+            document.getElementById('patientSummary').textContent = intro.split('?')[0] + '.';
+        }
+
+        function updateTurnCounter() {
+            turnCount++;
+            document.getElementById('turnCounter').textContent = `Turn ${turnCount} of conversation`;
+            
+            const prompt = reflectionPrompts.find(p => p.turn === turnCount);
+            if (prompt) {
+                const reflectionDiv = document.getElementById('reflectionPrompts');
+                reflectionDiv.style.display = 'block';
+                document.getElementById('reflectionText').textContent = prompt.text;
+                
+                setTimeout(() => {
+                    reflectionDiv.style.display = 'none';
+                }, 15000);
+            }
+        }
+
+        function toggleVoiceMode() {
+            isVoiceMode = document.getElementById('voiceToggle').checked;
+            const voiceBtn = document.getElementById('voiceBtn');
+            const modeLabel = document.getElementById('modeLabel');
+            
+            if (isVoiceMode) {
+                modeLabel.textContent = 'On';
+                voiceBtn.style.display = 'inline-flex';
+                initializeSpeechRecognition();
+            } else {
+                modeLabel.textContent = 'Off';
+                voiceBtn.style.display = 'none';
+                if (isListening) {
+                    stopListening();
+                }
+                if (isSpeaking) {
+                    stopSpeaking();
+                }
+            }
+        }
+
+        function initializeSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showStatus('Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.', 'error');
+                document.getElementById('voiceToggle').checked = false;
+                isVoiceMode = false;
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                showStatus('Listening... Speak now', 'listening');
+                document.getElementById('voiceBtn').textContent = '🔴 Stop Listening';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('messageInput').value = transcript;
+                sendMessage();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                document.getElementById('voiceBtn').textContent = '🎤 Start Listening';
+                
+                if (event.error !== 'no-speech') {
+                    showStatus(`Voice error: ${event.error}. Please try again.`, 'error');
+                }
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                document.getElementById('voiceBtn').textContent = '🎤 Start Listening';
+                hideStatus();
+            };
+        }
+
+        function toggleListening() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        function startListening() {
+            if (recognition) {
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        function speak(text) {
+            if (isSpeaking) {
+                synthesis.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 0.9;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
+
+            currentUtterance.onstart = () => {
+                isSpeaking = true;
+                document.getElementById('stopSpeakingBtn').style.display = 'inline-flex';
+                showStatus('Patient speaking...', 'speaking');
+            };
+
+            currentUtterance.onend = () => {
+                isSpeaking = false;
+                document.getElementById('stopSpeakingBtn').style.display = 'none';
+                hideStatus();
+            };
+
+            currentUtterance.onerror = (event) => {
+                console.error('Speech synthesis error:', event);
+                isSpeaking = false;
+                document.getElementById('stopSpeakingBtn').style.display = 'none';
+            };
+
+            synthesis.speak(currentUtterance);
+        }
+
+        function stopSpeaking() {
+            synthesis.cancel();
+            isSpeaking = false;
+            document.getElementById('stopSpeakingBtn').style.display = 'none';
+            hideStatus();
+        }
+
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
@@ -136,7 +825,66 @@
             }
         }
 
-        // [REST OF THE JAVASCRIPT CODE FROM ENHANCED VERSION]
+        function addMessage(sender, text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const label = sender === 'patient' ? 'Patient' : 'You';
+            messageDiv.innerHTML = `
+                <div class="message-label">${label}</div>
+                <div class="message-content">${text}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function hideStatus() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'none';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function resetSimulation() {
+            if (confirm('Start a conversation with a new patient? This will end the current session.')) {
+                conversationHistory = [];
+                turnCount = 0;
+                document.getElementById('chatMessages').innerHTML = '';
+                document.getElementById('patientCard').style.display = 'none';
+                document.getElementById('reflectionPrompts').style.display = 'none';
+                
+                if (isSpeaking) {
+                    stopSpeaking();
+                }
+                if (isListening) {
+                    stopListening();
+                }
+                
+                initializePatient();
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (isSpeaking) {
+                synthesis.cancel();
+            }
+            if (isListening && recognition) {
+                recognition.stop();
+            }
+        });
     </script>
 </body>
 </html>
