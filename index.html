@@ -479,6 +479,7 @@
         let currentUtterance = null;
         let turnCount = 0;
         let patientProfile = null;
+        let currentAudio = null; //
 
         // Reflection prompts shown after certain turns
         const reflectionPrompts = [
@@ -745,39 +746,66 @@ Your purpose: Help learners see patients with disabilities as whole people with 
             }
         }
 
-        function speak(text) {
-            if (isSpeaking) {
-                synthesis.cancel();
-            }
+        async function speak(text) {
+    if (isSpeaking) {
+        stopSpeaking();
+    }
 
-            currentUtterance = new SpeechSynthesisUtterance(text);
-            currentUtterance.rate = 0.9;
-            currentUtterance.pitch = 1.0;
-            currentUtterance.volume = 1.0;
+    try {
+        isSpeaking = true;
+        document.getElementById('stopSpeakingBtn').style.display = 'inline-flex';
+        showStatus('Patient speaking...', 'speaking');
 
-            currentUtterance.onstart = () => {
-                isSpeaking = true;
-                document.getElementById('stopSpeakingBtn').style.display = 'inline-flex';
-                showStatus('Patient speaking...', 'speaking');
-            };
+        // Call ElevenLabs TTS function
+        const response = await fetch('/.netlify/functions/text-to-speech', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                voiceId: '21m00Tcm4TlvDq8ikWAM' // Rachel voice - change this to your chosen voice ID
+            })
+        });
 
-            currentUtterance.onend = () => {
-                isSpeaking = false;
-                document.getElementById('stopSpeakingBtn').style.display = 'none';
-                hideStatus();
-            };
-
-            currentUtterance.onerror = (event) => {
-                console.error('Speech synthesis error:', event);
-                isSpeaking = false;
-                document.getElementById('stopSpeakingBtn').style.display = 'none';
-            };
-
-            synthesis.speak(currentUtterance);
+        if (!response.ok) {
+            throw new Error('TTS failed');
         }
 
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        audio.onended = () => {
+            isSpeaking = false;
+            document.getElementById('stopSpeakingBtn').style.display = 'none';
+            hideStatus();
+            URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = (error) => {
+            console.error('Audio playback error:', error);
+            isSpeaking = false;
+            document.getElementById('stopSpeakingBtn').style.display = 'none';
+            hideStatus();
+        };
+
+        currentAudio = audio;
+        audio.play();
+
+    } catch (error) {
+        console.error('Speech synthesis error:', error);
+        isSpeaking = false;
+        document.getElementById('stopSpeakingBtn').style.display = 'none';
+        hideStatus();
+    }
+
+        }
         function stopSpeaking() {
-            synthesis.cancel();
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
             isSpeaking = false;
             document.getElementById('stopSpeakingBtn').style.display = 'none';
             hideStatus();
