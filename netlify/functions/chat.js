@@ -1,6 +1,3 @@
-// Netlify Function to proxy Anthropic API calls securely
-// Save this as: netlify/functions/chat.js
-
 const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
@@ -8,7 +5,11 @@ exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      body: 'Method Not Allowed'
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
@@ -21,7 +22,7 @@ exports.handler = async (event, context) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY, // Stored securely in Netlify
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -33,13 +34,32 @@ exports.handler = async (event, context) => {
     });
 
     const data = await response.json();
+    
+    // Log for debugging
+    console.log('Anthropic API Response:', JSON.stringify(data));
+
+    // Check if response is successful
+    if (!response.ok) {
+      console.error('Anthropic API Error:', data);
+      return {
+        statusCode: response.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ 
+          error: 'API Error',
+          details: data 
+        })
+      };
+    }
 
     // Return the response
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*' // Allows your frontend to call this
+        'Access-Control-Allow-Origin': '*'
       },
       body: JSON.stringify(data)
     };
@@ -47,7 +67,14 @@ exports.handler = async (event, context) => {
     console.error('Error calling Anthropic API:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to get response' })
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ 
+        error: 'Failed to get response',
+        message: error.message 
+      })
     };
   }
 };
